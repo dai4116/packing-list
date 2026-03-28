@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, nextTick } from 'vue';
 import type { PackingCategory, PackingItem } from '../data/initialData';
 import { ChevronDown, ChevronUp, Trash2, Edit2, Check, X, Plus } from 'lucide-vue-next';
 import { v4 as uuidv4 } from 'uuid';
@@ -36,15 +36,21 @@ const cancelEditTitle = () => {
 
 // Items Management
 const newItemName = ref('');
+const newItemInput = ref<HTMLInputElement | null>(null);
 
 const addItem = () => {
-  if (newItemName.value.trim()) {
+  const name = newItemName.value.trim();
+  if (name) {
     props.category.items.push({
       id: uuidv4(),
-      name: newItemName.value.trim(),
+      name,
       checked: false
     });
     newItemName.value = '';
+    // Continuous typing: keep focus on the input
+    nextTick(() => {
+      newItemInput.value?.focus();
+    });
   }
 };
 
@@ -75,6 +81,23 @@ const cancelEditItem = () => {
   editingItemId.value = null;
 };
 
+// Long Press Management
+const pressTimer = ref<ReturnType<typeof setTimeout> | null>(null);
+
+const handlePressStart = (item: PackingItem) => {
+  pressTimer.value = setTimeout(() => {
+    startEditItem(item);
+    if (navigator.vibrate) navigator.vibrate(50);
+  }, 600);
+};
+
+const handlePressEnd = () => {
+  if (pressTimer.value) {
+    clearTimeout(pressTimer.value);
+    pressTimer.value = null;
+  }
+};
+
 const completedCount = computed(() => {
   return props.category.items.filter(item => item.checked).length;
 });
@@ -84,36 +107,41 @@ const completedCount = computed(() => {
   <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden transition-all duration-300">
     <!-- Category Header -->
     <div 
-      class="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 transition-colors"
+      class="flex items-center justify-between p-5 cursor-pointer hover:bg-slate-50 transition-colors select-none"
       @click="!isEditingTitle && emit('toggle')"
     >
-      <div class="flex items-center gap-3 flex-1" @click.stop>
-        <div v-if="isEditingTitle" class="flex items-center gap-2 w-full max-w-sm">
+      <div class="flex items-center gap-4 flex-1">
+        <div v-if="isEditingTitle" class="flex items-center gap-2 w-full max-w-sm" @click.stop>
           <input 
             v-model="editingTitleValue" 
             @keyup.enter="saveTitle"
             @keyup.esc="cancelEditTitle"
-            class="flex-1 px-3 py-1.5 text-sm border border-slate-300 rounded focus:outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
+            class="flex-1 px-3 py-2 text-sm border border-slate-300 rounded focus:outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800"
             autoFocus
           />
-          <button @click="saveTitle" class="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded">
-            <Check class="w-4 h-4" />
+          <button @click="saveTitle" class="p-2 text-emerald-600 hover:bg-emerald-50 rounded">
+            <Check class="w-5 h-5" />
           </button>
-          <button @click="cancelEditTitle" class="p-1.5 text-slate-400 hover:bg-slate-100 rounded">
-            <X class="w-4 h-4" />
+          <button @click="cancelEditTitle" class="p-2 text-slate-400 hover:bg-slate-100 rounded">
+            <X class="w-5 h-5" />
           </button>
         </div>
-        <div v-else class="flex items-center gap-3">
-          <button @click="emit('toggle')" class="text-slate-400 hover:text-slate-600">
-            <ChevronUp v-if="category.isOpen" class="w-5 h-5" />
-            <ChevronDown v-else class="w-5 h-5" />
-          </button>
-          <h2 class="text-lg font-medium text-slate-800">{{ category.title }}</h2>
-          <span class="text-xs font-medium px-2 py-1 bg-slate-100 text-slate-500 rounded-full">
-            {{ completedCount }} / {{ category.items.length }}
-          </span>
-          <button @click="startEditTitle" class="p-1 text-slate-300 hover:text-slate-600 rounded opacity-0 group-hover:opacity-100 transition-opacity md:opacity-100">
-            <Edit2 class="w-3.5 h-3.5" />
+        <div v-else class="flex items-center gap-4 w-full">
+          <div class="text-slate-400">
+            <ChevronUp v-if="category.isOpen" class="w-6 h-6" />
+            <ChevronDown v-else class="w-6 h-6" />
+          </div>
+          <div class="flex items-center gap-3">
+            <h2 class="text-xl font-bold text-slate-800">{{ category.title }}</h2>
+            <span class="text-xs font-bold px-2.5 py-1 bg-slate-100 text-slate-500 rounded-full">
+              {{ completedCount }} / {{ category.items.length }}
+            </span>
+          </div>
+          <button 
+            @click.stop="startEditTitle" 
+            class="p-2 text-slate-300 hover:text-slate-600 rounded transition-colors ml-auto md:ml-0"
+          >
+            <Edit2 class="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -121,86 +149,91 @@ const completedCount = computed(() => {
       <button 
         v-if="!isEditingTitle"
         @click.stop="emit('delete')" 
-        class="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded transition-colors"
+        class="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded transition-colors ml-2"
         title="刪除分類"
       >
-        <Trash2 class="w-4 h-4" />
+        <Trash2 class="w-5 h-5" />
       </button>
     </div>
 
     <!-- Category Content (Items) -->
-    <div v-show="category.isOpen" class="border-t border-slate-50 p-4 pt-2">
-      <ul class="space-y-1">
-        <li 
-          v-for="item in category.items" 
-          :key="item.id"
-          class="group flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors"
-        >
-          <div v-if="editingItemId === item.id" class="flex items-center gap-2 flex-1 w-full">
-            <input 
-              v-model="editingItemValue" 
-              @keyup.enter="saveItem(item)"
-              @keyup.esc="cancelEditItem"
-              class="flex-1 px-3 py-1.5 text-sm border border-slate-300 rounded focus:outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
-              autoFocus
-            />
-            <button @click="saveItem(item)" class="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded">
-              <Check class="w-4 h-4" />
-            </button>
-            <button @click="cancelEditItem" class="p-1.5 text-slate-400 hover:bg-slate-100 rounded">
-              <X class="w-4 h-4" />
-            </button>
-          </div>
-          <div v-else class="flex items-center gap-3 flex-1">
-            <label class="relative flex items-center cursor-pointer group/check gap-3 w-full">
-              <input 
-                type="checkbox" 
-                v-model="item.checked"
-                class="peer sr-only"
-              />
-              <div class="shrink-0 w-5 h-5 rounded border-2 border-slate-300 peer-checked:bg-slate-800 peer-checked:border-slate-800 flex items-center justify-center transition-all">
-                <Check 
-                  class="w-3.5 h-3.5 text-white transition-opacity duration-200" 
-                  :class="item.checked ? 'opacity-100' : 'opacity-0'"
-                  stroke-width="4" 
+    <div 
+      class="grid transition-all duration-300 ease-in-out"
+      :class="category.isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'"
+    >
+      <div class="overflow-hidden">
+        <div class="border-t border-slate-50 p-4 pt-2">
+          <ul class="space-y-1">
+            <li 
+              v-for="item in category.items" 
+              :key="item.id"
+              class="group flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors active:bg-slate-100/50"
+              @mousedown="handlePressStart(item)"
+              @touchstart="handlePressStart(item)"
+              @mouseup="handlePressEnd"
+              @touchend="handlePressEnd"
+              @touchmove="handlePressEnd"
+              @mouseleave="handlePressEnd"
+            >
+              <div v-if="editingItemId === item.id" class="flex items-center gap-2 flex-1 w-full" @mousedown.stop @touchstart.stop>
+                <input 
+                  v-model="editingItemValue" 
+                  @keyup.enter="saveItem(item)"
+                  @keyup.esc="cancelEditItem"
+                  class="flex-1 px-3 py-1.5 text-sm border border-slate-300 rounded focus:outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800"
+                  autoFocus
                 />
+                <button @click="saveItem(item)" class="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded">
+                  <Check class="w-4 h-4" />
+                </button>
+                <button @click="cancelEditItem" class="p-1.5 text-slate-400 hover:bg-slate-100 rounded">
+                  <X class="w-4 h-4" />
+                </button>
               </div>
-              <span 
-                class="text-slate-700 select-none transition-all duration-300"
-                :class="{ 'text-slate-400 font-normal': item.checked }"
-              >
-                {{ item.name }}
-              </span>
-            </label>
-          </div>
+              <div v-else class="flex items-center gap-3 flex-1">
+                <label class="relative flex items-center cursor-pointer group/check gap-3 w-full">
+                  <input 
+                    type="checkbox" 
+                    v-model="item.checked"
+                    class="peer sr-only"
+                  />
+                  <div class="shrink-0 w-5 h-5 rounded border-2 border-slate-300 peer-checked:bg-slate-800 peer-checked:border-slate-800 flex items-center justify-center transition-all">
+                    <Check 
+                      class="w-3.5 h-3.5 text-white transition-opacity duration-200" 
+                      :class="item.checked ? 'opacity-100' : 'opacity-0'"
+                      stroke-width="4" 
+                    />
+                  </div>
+                  <span 
+                    class="text-slate-700 select-none transition-all duration-300"
+                    :class="{ 'text-slate-400 font-normal': item.checked }"
+                  >
+                    {{ item.name }}
+                  </span>
+                </label>
+              </div>
 
-          <div v-if="editingItemId !== item.id" class="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-            <button @click="startEditItem(item)" class="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded">
-              <Edit2 class="w-3.5 h-3.5" />
-            </button>
-            <button @click="deleteItem(item.id)" class="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded ml-1">
-              <Trash2 class="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </li>
-      </ul>
+              <div v-if="editingItemId !== item.id" class="flex items-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                <button @click.stop="deleteItem(item.id)" class="p-1.5 text-slate-300 md:text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded ml-1">
+                  <X class="w-4 h-4" />
+                </button>
+              </div>
+            </li>
+          </ul>
 
-      <!-- Add New Item -->
-      <div class="mt-3 flex items-center gap-2 px-2">
-        <Plus class="w-4 h-4 text-slate-400" />
-        <input 
-          v-model="newItemName"
-          @keyup.enter="addItem"
-          placeholder="新增項目..."
-          class="flex-1 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
-        />
-        <button 
-          v-if="newItemName.trim()"
-          @click="addItem"
-          class="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-1 rounded hover:bg-slate-200"
-        >
-          新增
-        </button>
+          <!-- Add New Item -->
+          <div class="mt-3 flex items-center gap-2 px-2 pb-2">
+            <Plus class="w-4 h-4 text-slate-400" />
+            <input 
+              ref="newItemInput"
+              v-model="newItemName"
+              @keyup.enter="addItem"
+              @blur="addItem"
+              placeholder="新增項目..."
+              class="flex-1 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
+            />
+          </div>
+        </div>
       </div>
     </div>
   </div>

@@ -88,35 +88,9 @@ const toggleCategory = (id: string) => {
 </script>
 
 <template>
-  <div class="space-y-6">
-    <!-- Sticky Progress Bar -->
-    <div class="sticky top-4 z-10 bg-white/80 backdrop-blur-md p-4 rounded-xl shadow-md border border-slate-100 mb-8">
-      <div class="flex justify-between items-end mb-2">
-        <span class="text-sm font-bold text-slate-700">打包進度</span>
-        <span class="text-2xl font-bold text-slate-900">{{ progressPercentage }}%</span>
-      </div>
-      <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
-        <div 
-          class="bg-slate-800 h-3 rounded-full transition-all duration-500 ease-out"
-          :style="{ width: `${progressPercentage}%` }"
-        ></div>
-      </div>
-    </div>
-
-    <!-- Category List -->
-    <div class="space-y-4 pb-20">
-      <Category 
-        v-for="category in categories" 
-        :key="category.id"
-        :category="category"
-        @delete="deleteCategory(category.id)"
-        @update-title="(title) => updateCategoryTitle(category.id, title)"
-        @toggle="toggleCategory(category.id)"
-      />
-    </div>
-
-    <!-- Global Actions -->
-    <div class="pt-6 border-t border-slate-200 flex flex-wrap gap-3 justify-center">
+  <div class="relative">
+     <!-- Global Actions -->
+    <div class="pt-6 pb-6 border-t border-slate-200 flex flex-wrap gap-3 justify-center">
       <button 
         @click="addCategory"
         class="flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-colors text-sm shadow-sm"
@@ -139,5 +113,49 @@ const toggleCategory = (id: string) => {
         回復預設
       </button>
     </div>
+    <!-- Floating Circular Progress Indicator -->
+    <div class="fixed bottom-8 right-8 z-50 group">
+      <div class="relative w-16 h-16 bg-white/95 backdrop-blur-md rounded-full shadow-lg border border-slate-200 flex items-center justify-center transition-transform active:scale-95">
+        <!-- SVG Circular Progress -->
+        <svg class="absolute inset-0 w-full h-full -rotate-90 p-1" viewBox="0 0 80 80">
+          <circle
+            cx="40"
+            cy="40"
+            r="36"
+            stroke="currentColor"
+            stroke-width="7"
+            fill="transparent"
+            class="text-slate-100"
+          />
+          <circle
+            cx="40"
+            cy="40"
+            r="36"
+            stroke="currentColor"
+            stroke-width="7"
+            fill="transparent"
+            :stroke-dasharray="2 * Math.PI * 36"
+            :stroke-dashoffset="2 * Math.PI * 36 * (1 - progressPercentage / 100)"
+            stroke-linecap="round"
+            class="text-slate-500 transition-all duration-500 ease-out"
+          />
+        </svg>
+        <span class="text-base font-bold text-slate-600">{{ progressPercentage }}%</span>
+      </div>
+    </div>
+
+    <!-- Category List -->
+    <div class="space-y-4 pb-24">
+      <Category 
+        v-for="category in categories" 
+        :key="category.id"
+        :category="category"
+        @delete="deleteCategory(category.id)"
+        @update-title="(title) => updateCategoryTitle(category.id, title)"
+        @toggle="toggleCategory(category.id)"
+      />
+    </div>
+
+   
   </div>
 </template>
