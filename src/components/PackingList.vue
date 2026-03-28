@@ -214,25 +214,25 @@ const toggleMenu = () => {
           v-if="isMenuOpen"
           class="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 py-2 z-[60]"
         >
-          <button @click="toggleAllCategories(); isMenuOpen = false" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
+          <button @click="toggleAllCategories(); isMenuOpen = false" class="w-full flex items-center gap-3 px-4 py-3 text-base text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
             <component :is="isAllOpen ? ChevronsUp : ChevronsDown" class="w-4 h-4 text-slate-400" />
             {{ isAllOpen ? '全部收合' : '全部展開' }}
           </button>
           <div class="h-px bg-slate-100 dark:bg-slate-700 my-1 mx-2"></div>
-          <button @click="exportData(); isMenuOpen = false" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
+          <button @click="exportData(); isMenuOpen = false" class="w-full flex items-center gap-3 px-4 py-3 text-base text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
             <Download class="w-4 h-4 text-slate-400" />
             匯出備份
           </button>
-          <button @click="triggerImport(); isMenuOpen = false" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
+          <button @click="triggerImport(); isMenuOpen = false" class="w-full flex items-center gap-3 px-4 py-3 text-base text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
             <Upload class="w-4 h-4 text-slate-400" />
             匯入清單
           </button>
           <div class="h-px bg-slate-100 dark:bg-slate-700 my-1 mx-2"></div>
-          <button @click="resetAll(); isMenuOpen = false" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
+          <button @click="resetAll(); isMenuOpen = false" class="w-full flex items-center gap-3 px-4 py-3 text-base text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
             <RotateCcw class="w-4 h-4 text-slate-400" />
             重設狀態
           </button>
-          <button @click="clearAll(); isMenuOpen = false" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30">
+          <button @click="clearAll(); isMenuOpen = false" class="w-full flex items-center gap-3 px-4 py-3 text-base text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30">
             <Trash2 class="w-4 h-4 text-rose-400" />
             回復預設
           </button>
