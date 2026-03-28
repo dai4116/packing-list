@@ -124,14 +124,14 @@ const completedCount = computed(() => {
             v-model="editingTitleValue" 
             @keyup.enter="saveTitle"
             @keyup.esc="cancelEditTitle"
-            class="flex-1 px-3 py-2 text-lg font-bold border border-slate-300 rounded focus:outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800"
+            class="flex-1 px-3 h-10 text-lg font-bold border border-slate-300 rounded focus:outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800"
             autoFocus
           />
-          <button @click="saveTitle" class="p-2 text-emerald-600 hover:bg-emerald-50 rounded">
-            <Check class="w-5 h-5" />
+          <button @click="saveTitle" class="shrink-0 p-2 text-emerald-600 hover:bg-emerald-50 rounded">
+            <Check class="w-6 h-6" />
           </button>
-          <button @click="cancelEditTitle" class="p-2 text-slate-400 hover:bg-slate-100 rounded">
-            <X class="w-5 h-5" />
+          <button @click="cancelEditTitle" class="shrink-0 p-2 text-slate-400 hover:bg-slate-100 rounded">
+            <X class="w-6 h-6" />
           </button>
         </div>
         <div v-else class="flex items-center gap-4 w-full">
@@ -188,14 +188,14 @@ const completedCount = computed(() => {
                   v-model="editingItemValue" 
                   @keyup.enter="saveItem(item)"
                   @keyup.esc="cancelEditItem"
-                  class="flex-1 px-3 py-2 text-base border border-slate-300 rounded focus:outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800"
+                  class="flex-1 px-3 h-10 text-base border border-slate-300 rounded focus:outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800"
                   autoFocus
                 />
-                <button @click="saveItem(item)" class="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded">
-                  <Check class="w-4 h-4" />
+                <button @click="saveItem(item)" class="shrink-0 p-2 text-emerald-600 hover:bg-emerald-50 rounded">
+                  <Check class="w-5 h-5" />
                 </button>
-                <button @click="cancelEditItem" class="p-1.5 text-slate-400 hover:bg-slate-100 rounded">
-                  <X class="w-4 h-4" />
+                <button @click="cancelEditItem" class="shrink-0 p-2 text-slate-400 hover:bg-slate-100 rounded">
+                  <X class="w-5 h-5" />
                 </button>
               </div>
               <div v-else class="flex items-center gap-3 flex-1">
