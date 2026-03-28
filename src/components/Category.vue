@@ -1,22 +1,30 @@
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue';
+import { ref, computed, nextTick, onMounted } from 'vue';
 import type { PackingCategory, PackingItem } from '../data/initialData';
 import { ChevronDown, ChevronUp, Trash2, Edit2, Check, X, Plus } from 'lucide-vue-next';
 import { v4 as uuidv4 } from 'uuid';
 
 const props = defineProps<{
   category: PackingCategory;
+  autoEdit?: boolean;
 }>();
 
 const emit = defineEmits<{
   (e: 'delete'): void;
   (e: 'update-title', title: string): void;
   (e: 'toggle'): void;
+  (e: 'edit-started'): void;
 }>();
 
 // Edit Category Title
 const isEditingTitle = ref(false);
 const editingTitleValue = ref('');
+
+onMounted(() => {
+  if (props.autoEdit) {
+    startEditTitle();
+  }
+});
 
 const startEditTitle = () => {
   editingTitleValue.value = props.category.title;
@@ -116,7 +124,7 @@ const completedCount = computed(() => {
             v-model="editingTitleValue" 
             @keyup.enter="saveTitle"
             @keyup.esc="cancelEditTitle"
-            class="flex-1 px-3 py-2 text-sm border border-slate-300 rounded focus:outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800"
+            class="flex-1 px-3 py-2 text-lg font-bold border border-slate-300 rounded focus:outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800"
             autoFocus
           />
           <button @click="saveTitle" class="p-2 text-emerald-600 hover:bg-emerald-50 rounded">
@@ -132,7 +140,7 @@ const completedCount = computed(() => {
             <ChevronDown v-else class="w-6 h-6" />
           </div>
           <div class="flex items-center gap-3">
-            <h2 class="text-xl font-bold text-slate-800">{{ category.title }}</h2>
+            <h2 class="text-lg font-bold text-slate-800">{{ category.title }}</h2>
             <span class="text-xs font-bold px-2.5 py-1 bg-slate-100 text-slate-500 rounded-full">
               {{ completedCount }} / {{ category.items.length }}
             </span>
@@ -180,7 +188,7 @@ const completedCount = computed(() => {
                   v-model="editingItemValue" 
                   @keyup.enter="saveItem(item)"
                   @keyup.esc="cancelEditItem"
-                  class="flex-1 px-3 py-1.5 text-sm border border-slate-300 rounded focus:outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800"
+                  class="flex-1 px-3 py-2 text-base border border-slate-300 rounded focus:outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800"
                   autoFocus
                 />
                 <button @click="saveItem(item)" class="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded">
@@ -205,7 +213,7 @@ const completedCount = computed(() => {
                     />
                   </div>
                   <span 
-                    class="text-slate-700 select-none transition-all duration-300"
+                    class="text-slate-700 select-none transition-all duration-300 text-base"
                     :class="{ 'text-slate-400 font-normal': item.checked }"
                   >
                     {{ item.name }}
@@ -230,7 +238,7 @@ const completedCount = computed(() => {
               @keyup.enter="addItem"
               @blur="addItem"
               placeholder="新增項目..."
-              class="flex-1 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
+              class="flex-1 bg-transparent text-base text-slate-700 placeholder:text-slate-400 focus:outline-none"
             />
           </div>
         </div>

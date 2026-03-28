@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue';
+import { ref, onMounted, watch, computed, nextTick } from 'vue';
 import { initialData, type PackingCategory } from '../data/initialData';
 import Category from './Category.vue';
 import { Plus, RotateCcw, Trash2 } from 'lucide-vue-next';
@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 const STORAGE_KEY = 'packing-list-data';
 const categories = ref<PackingCategory[]>([]);
+const newCategoryId = ref<string | null>(null);
 
 // Load from local storage or use initial data
 onMounted(() => {
@@ -46,11 +47,21 @@ const progressPercentage = computed(() => {
 
 // Actions
 const addCategory = () => {
+  const id = uuidv4();
   categories.value.push({
-    id: uuidv4(),
-    title: '新分類',
+    id,
+    title: '',
     isOpen: true,
     items: []
+  });
+  newCategoryId.value = id;
+  
+  // Scroll to bottom after DOM updates
+  nextTick(() => {
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'smooth'
+    });
   });
 };
 
@@ -150,8 +161,9 @@ const toggleCategory = (id: string) => {
         v-for="category in categories" 
         :key="category.id"
         :category="category"
+        :auto-edit="newCategoryId === category.id"
         @delete="deleteCategory(category.id)"
-        @update-title="(title) => updateCategoryTitle(category.id, title)"
+        @update-title="(title) => { updateCategoryTitle(category.id, title); newCategoryId = null; }"
         @toggle="toggleCategory(category.id)"
       />
     </div>
