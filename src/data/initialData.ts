@@ -34,21 +34,15 @@ export const initialData: PackingCategory[] = [
   },
   {
     id: uuidv4(),
-    title: '美容用品',
-    isOpen: true,
-    items: ['各類化妝品', '隱形眼鏡', '眼鏡/眼鏡盒', '髮捲', '香水'].map(name => ({ id: uuidv4(), name, checked: false }))
-  },
-  {
-    id: uuidv4(),
     title: '生活用品',
     isOpen: true,
     items: ['眼藥水', '棉花棒', '鏡子', '小剪刀', '行李秤', '耳塞', '口罩', '頸枕', '衣架', '垃圾袋'].map(name => ({ id: uuidv4(), name, checked: false }))
   },
   {
     id: uuidv4(),
-    title: '保養品',
+    title: '美容保養用品',
     isOpen: true,
-    items: ['化妝水', '精華液', '臉部乳液', '身體乳液', '護手霜', '面膜', '護唇膏'].map(name => ({ id: uuidv4(), name, checked: false }))
+    items: ['各類化妝品', '隱形眼鏡', '眼鏡/眼鏡盒', '香水','各類保養品', '身體乳液', '護手霜', '面膜', '護唇膏'].map(name => ({ id: uuidv4(), name, checked: false }))
   },
   {
     id: uuidv4(),
