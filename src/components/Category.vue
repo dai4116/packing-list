@@ -84,9 +84,14 @@ const saveItem = (item: PackingItem) => {
   }
   editingItemId.value = null;
 };
-
 const cancelEditItem = () => {
   editingItemId.value = null;
+};
+
+const handleToggleItem = () => {
+  if (navigator.vibrate) {
+    navigator.vibrate(10); // Very subtle click feel
+  }
 };
 
 // Long Press Management
@@ -112,42 +117,37 @@ const completedCount = computed(() => {
 </script>
 
 <template>
-  <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden transition-all duration-300">
+  <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden transition-all duration-300">
     <!-- Category Header -->
     <div 
-      class="flex items-center justify-between p-5 cursor-pointer hover:bg-slate-50 transition-colors select-none"
+      class="flex items-center justify-between p-5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors select-none"
       @click="!isEditingTitle && emit('toggle')"
     >
       <div class="flex items-center gap-4 flex-1">
-        <div v-if="isEditingTitle" class="flex items-center gap-1.5 w-full min-w-0" @click.stop>
+        <div v-if="isEditingTitle" class="flex items-center w-full min-w-0" @click.stop>
           <input 
             v-model="editingTitleValue" 
             @keyup.enter="saveTitle"
             @keyup.esc="cancelEditTitle"
-            class="flex-1 min-w-0 px-2.5 h-10 text-lg font-bold border border-slate-300 rounded focus:outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800"
+            @blur="saveTitle"
+            class="flex-1 min-w-0 px-2.5 h-10 text-lg font-bold border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-slate-800 dark:focus:border-slate-400 focus:ring-1 focus:ring-slate-800 dark:focus:ring-slate-400 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
             autoFocus
           />
-          <button @click="saveTitle" class="shrink-0 p-1.5 text-emerald-600 hover:bg-emerald-50 rounded">
-            <Check class="w-6 h-6" />
-          </button>
-          <button @click="cancelEditTitle" class="shrink-0 p-1.5 text-slate-400 hover:bg-slate-100 rounded">
-            <X class="w-6 h-6" />
-          </button>
         </div>
         <div v-else class="flex items-center gap-4 w-full">
-          <div class="text-slate-400">
+          <div class="text-slate-400 dark:text-slate-500">
             <ChevronUp v-if="category.isOpen" class="w-6 h-6" />
             <ChevronDown v-else class="w-6 h-6" />
           </div>
           <div class="flex items-center gap-3">
-            <h2 class="text-lg font-bold text-slate-800">{{ category.title }}</h2>
-            <span class="text-xs font-bold px-2.5 py-1 bg-slate-100 text-slate-500 rounded-full">
+            <h2 class="text-xl font-bold text-slate-800 dark:text-slate-200">{{ category.title || '未命名分類' }}</h2>
+            <span class="text-xs font-bold px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-full">
               {{ completedCount }} / {{ category.items.length }}
             </span>
           </div>
           <button 
             @click.stop="startEditTitle" 
-            class="p-2 text-slate-300 hover:text-slate-600 rounded transition-colors ml-auto md:ml-0"
+            class="p-2 text-slate-300 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 rounded transition-colors ml-auto md:ml-0"
           >
             <Edit2 class="w-4 h-4" />
           </button>
@@ -157,7 +157,7 @@ const completedCount = computed(() => {
       <button 
         v-if="!isEditingTitle"
         @click.stop="emit('delete')" 
-        class="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded transition-colors ml-2"
+        class="p-2 text-slate-300 dark:text-slate-600 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded transition-colors ml-2"
         title="刪除分類"
       >
         <Trash2 class="w-5 h-5" />
@@ -170,12 +170,12 @@ const completedCount = computed(() => {
       :class="category.isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'"
     >
       <div class="overflow-hidden">
-        <div class="border-t border-slate-50 p-4 pt-2">
+        <div class="border-t border-slate-50 dark:border-slate-800 p-4 pt-2">
           <ul class="space-y-1">
             <li 
               v-for="item in category.items" 
               :key="item.id"
-              class="group flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors active:bg-slate-100/50"
+              class="group flex items-center justify-between px-2 h-12 hover:bg-slate-50 dark:hover:bg-slate-800/30 rounded-lg transition-colors active:bg-slate-100/50 dark:active:bg-slate-700/50"
               @mousedown="handlePressStart(item)"
               @touchstart="handlePressStart(item)"
               @mouseup="handlePressEnd"
@@ -183,38 +183,46 @@ const completedCount = computed(() => {
               @touchmove="handlePressEnd"
               @mouseleave="handlePressEnd"
             >
-              <div v-if="editingItemId === item.id" class="flex items-center gap-1.5 flex-1 w-full min-w-0" @mousedown.stop @touchstart.stop>
+              <div v-if="editingItemId === item.id" class="flex items-center gap-3 flex-1 w-full min-w-0" @mousedown.stop @touchstart.stop>
+                <!-- Static Checkbox Placeholder during edit -->
+                <div 
+                  class="shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-all"
+                  :class="item.checked ? 'bg-slate-200 dark:bg-slate-700 border-slate-200 dark:border-slate-700' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800'"
+                >
+                  <Check 
+                    v-if="item.checked"
+                    class="w-3.5 h-3.5 text-white dark:text-slate-400" 
+                    stroke-width="4" 
+                  />
+                </div>
+                
                 <input 
                   v-model="editingItemValue" 
                   @keyup.enter="saveItem(item)"
                   @keyup.esc="cancelEditItem"
-                  class="flex-1 min-w-0 px-2.5 h-10 text-base border border-slate-300 rounded focus:outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800"
+                  @blur="saveItem(item)"
+                  class="flex-1 min-w-0 px-2.5 h-9 text-base border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-slate-800 dark:focus:border-slate-400 focus:ring-1 focus:ring-slate-800 dark:focus:ring-slate-400 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                   autoFocus
                 />
-                <button @click="saveItem(item)" class="shrink-0 p-1.5 text-emerald-600 hover:bg-emerald-50 rounded">
-                  <Check class="w-5 h-5" />
-                </button>
-                <button @click="cancelEditItem" class="shrink-0 p-1.5 text-slate-400 hover:bg-slate-100 rounded">
-                  <X class="w-5 h-5" />
-                </button>
               </div>
-              <div v-else class="flex items-center gap-3 flex-1">
-                <label class="relative flex items-center cursor-pointer group/check gap-3 w-full">
+              <div v-else class="flex items-center gap-3 flex-1 h-full">
+                <label class="relative flex items-center cursor-pointer group/check gap-3 w-full h-full">
                   <input 
                     type="checkbox" 
                     v-model="item.checked"
+                    @change="handleToggleItem"
                     class="peer sr-only"
                   />
-                  <div class="shrink-0 w-5 h-5 rounded border-2 border-slate-300 peer-checked:bg-slate-800 peer-checked:border-slate-800 flex items-center justify-center transition-all">
+                  <div class="shrink-0 w-5 h-5 rounded border-2 border-slate-300 dark:border-slate-600 peer-checked:bg-slate-800 dark:peer-checked:bg-slate-100 peer-checked:border-slate-800 dark:peer-checked:border-slate-100 flex items-center justify-center transition-all">
                     <Check 
-                      class="w-3.5 h-3.5 text-white transition-opacity duration-200" 
+                      class="w-3.5 h-3.5 text-white dark:text-slate-900 transition-opacity duration-200" 
                       :class="item.checked ? 'opacity-100' : 'opacity-0'"
                       stroke-width="4" 
                     />
                   </div>
                   <span 
-                    class="text-slate-700 select-none transition-all duration-300 text-base"
-                    :class="{ 'text-slate-400 font-normal': item.checked }"
+                    class="text-slate-700 dark:text-slate-300 select-none transition-all duration-300 text-base"
+                    :class="{ 'text-slate-400 dark:text-slate-500 font-normal': item.checked }"
                   >
                     {{ item.name }}
                   </span>
@@ -222,7 +230,7 @@ const completedCount = computed(() => {
               </div>
 
               <div v-if="editingItemId !== item.id" class="flex items-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                <button @click.stop="deleteItem(item.id)" class="p-1.5 text-slate-300 md:text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded ml-1">
+                <button @click.stop="deleteItem(item.id)" class="p-1.5 text-slate-300 dark:text-slate-600 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded ml-1">
                   <X class="w-4 h-4" />
                 </button>
               </div>
@@ -231,14 +239,14 @@ const completedCount = computed(() => {
 
           <!-- Add New Item -->
           <div class="mt-3 flex items-center gap-2 px-2 pb-2">
-            <Plus class="w-4 h-4 text-slate-400" />
+            <Plus class="w-4 h-4 text-slate-400 dark:text-slate-600" />
             <input 
               ref="newItemInput"
               v-model="newItemName"
               @keyup.enter="addItem"
               @blur="addItem"
               placeholder="新增項目..."
-              class="flex-1 bg-transparent text-base text-slate-700 placeholder:text-slate-400 focus:outline-none"
+              class="flex-1 bg-transparent text-base text-slate-700 dark:text-slate-300 placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none"
             />
           </div>
         </div>
